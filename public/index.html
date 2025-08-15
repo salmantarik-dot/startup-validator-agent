@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Startup Validator Agent</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 600px;
+      margin: 40px auto;
+      padding: 20px;
+    }
+    textarea {
+      width: 100%;
+      height: 120px;
+    }
+    .output {
+      margin-top: 20px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <h1>Startup Validator Agent</h1>
+  <form id="validate-form">
+    <label for="idea">Enter your startup idea:</label><br/>
+    <textarea id="idea" placeholder="e.g. An AI-powered app to help farmers make better crop decisions."></textarea><br/><br/>
+    <button type="submit">Validate</button>
+  </form>
+  <div id="result" class="output"></div>
+
+  <script>
+    const form = document.getElementById("validate-form");
+    const resultDiv = document.getElementById("result");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const idea = document.getElementById("idea").value.trim();
+      if (!idea) {
+        resultDiv.innerText = "Please enter a startup idea.";
+        return;
+      }
+
+      resultDiv.innerText = "Validating...";
+      try {
+        const res = await fetch("/api/validate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: idea })
+        });
+        const data = await res.json();
+        resultDiv.innerText = data.feedback || "No feedback returned.";
+      } catch (err) {
+        resultDiv.innerText = "⚠️ Failed to validate. Please try again.";
+      }
+    });
+  </script>
+</body>
+</html>
