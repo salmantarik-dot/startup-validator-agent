@@ -32,11 +32,28 @@ Be honest but supportive. Avoid fluff.
       })
     });
 
-    const data = await response.json();
+    const raw = await response.text(); // Get full response text for debugging
+    let data;
+
+    try {
+      data = JSON.parse(raw);
+    } catch (jsonErr) {
+      return new Response(JSON.stringify({
+        feedback: "⚠️ Failed to parse AI response.",
+        rawResponse: raw,
+        error: jsonErr.message
+      }), {
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
     const aiReply = data.choices?.[0]?.message?.content;
 
     if (!aiReply) {
-      return new Response(JSON.stringify({ feedback: "⚠️ AI response was empty. Please try again." }), {
+      return new Response(JSON.stringify({
+        feedback: "⚠️ AI returned no message.",
+        rawResponse: raw
+      }), {
         headers: { "Content-Type": "application/json" },
       });
     }
@@ -46,7 +63,10 @@ Be honest but supportive. Avoid fluff.
     });
 
   } catch (err) {
-    return new Response(JSON.stringify({ feedback: "⚠️ Error: " + err.message }), {
+    return new Response(JSON.stringify({
+      feedback: "⚠️ Unexpected error.",
+      error: err.message
+    }), {
       headers: { "Content-Type": "application/json" },
     });
   }
