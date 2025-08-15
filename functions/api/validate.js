@@ -16,9 +16,9 @@ Please evaluate the idea across the following 5 criteria:
 4. 🔧 Feasibility – Can it realistically be built with reasonable resources?
 5. 💰 Monetization – Is there a viable way to make money?
 
-Return a short summary (max 3-4 lines) for each point.
-Use plain English. Be honest but encouraging.
-    `.trim();
+Return clear feedback under each point. Use plain English.
+Be honest but supportive. Avoid fluff.
+`.trim();
 
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
@@ -33,7 +33,13 @@ Use plain English. Be honest but encouraging.
     });
 
     const data = await response.json();
-    const aiReply = data.choices?.[0]?.message?.content || "⚠️ AI response was empty. Please try again.";
+    const aiReply = data.choices?.[0]?.message?.content;
+
+    if (!aiReply) {
+      return new Response(JSON.stringify({ feedback: "⚠️ AI response was empty. Please try again." }), {
+        headers: { "Content-Type": "application/json" },
+      });
+    }
 
     return new Response(JSON.stringify({ feedback: aiReply }), {
       headers: { "Content-Type": "application/json" },
