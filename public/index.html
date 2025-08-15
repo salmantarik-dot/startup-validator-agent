@@ -6,23 +6,19 @@
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     const idea = pointsInput.value.trim();
-    resultContainer.innerHTML = "⏳ Evaluating...";
+    resultContainer.innerHTML = "⏳ Evaluating your idea...";
 
     try {
       const response = await fetch("/api/validate", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: idea }),
       });
 
       const data = await response.json();
-      const feedback = data.feedback || "⚠️ No feedback returned.";
-
-      resultContainer.innerHTML = `<pre>${feedback}</pre>`;
+      resultContainer.innerHTML = `<pre>${data.feedback}</pre>`;
     } catch (err) {
-      resultContainer.innerHTML = "❌ Error connecting to AI.";
+      resultContainer.innerHTML = "❌ Could not connect to AI.";
       console.error(err);
     }
   });
