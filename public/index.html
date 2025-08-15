@@ -37,40 +37,40 @@
   </form>
   <div id="output" style="margin-top: 30px;"></div>
 
-  <script>
-    const form = document.getElementById("validator-form");
-    const output = document.getElementById("output");
+ <script>
+  const form = document.getElementById("validator-form");
+  const output = document.getElementById("output");
 
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const message = document.getElementById("idea").value.trim();
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const message = document.getElementById("idea").value.trim();
 
-      if (!message) {
-        output.innerText = "❌ Please enter your startup idea.";
-        return;
+    if (!message) {
+      output.innerText = "❌ Please enter your startup idea.";
+      return;
+    }
+
+    output.innerText = "⏳ Evaluating your startup idea...";
+
+    try {
+      const response = await fetch("/api/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message }),
+      });
+
+      const data = await response.json();
+
+      if (data.evaluation) {
+        output.innerHTML = `<pre>${data.evaluation}</pre>`;
+      } else {
+        output.innerText = "⚠️ AI returned no message.";
       }
-
-      output.innerText = "⏳ Evaluating your startup idea...";
-
-      try {
-        const response = await fetch("/api/validate", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message }),
-        });
-
-        const data = await response.json();
-
-        if (data.evaluation) {
-          output.innerHTML = `<pre>${data.evaluation}</pre>`;
-        } else {
-          output.innerText = "⚠️ AI returned no message.";
-        }
-      } catch (err) {
-        console.error("Fetch error:", err);
-        output.innerText = "🚨 Error connecting to the AI.";
-      }
-    });
-  </script>
+    } catch (err) {
+      console.error("Fetch error:", err);
+      output.innerText = "🚨 Error connecting to the AI.";
+    }
+  });
+</script>
 </body>
 </html>
