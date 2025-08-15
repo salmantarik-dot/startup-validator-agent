@@ -155,8 +155,7 @@
             totalScore.textContent = data.score;
             badgeLabel.textContent = data.badge;
 
-            badgeLabel.className = 'badge'; // reset first
-
+            badgeLabel.className = 'badge'; // reset
             if (data.badge.toLowerCase().includes("investor")) {
               badgeLabel.classList.add('badge-high');
             } else if (data.badge.toLowerCase().includes("promising")) {
