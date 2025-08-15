@@ -6,70 +6,67 @@ export async function onRequestPost(context) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${context.env.OPENROUTER_API_KEY}`,
+        Authorization: "Bearer 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"
       },
       body: JSON.stringify({
         model: "openai/gpt-3.5-turbo",
         messages: [
           {
-            role: "system",
-            content: `
-You are a cynical but helpful startup evaluator. Evaluate the startup idea across 5 criteria:
-
-1. Clarity of idea  
-2. Market size  
-3. Uniqueness  
-4. Feasibility  
-5. Monetization
-
-For each:
-- Give a short explanation
-- Give a rating out of 5 in the format: **Rating: X/5**
-- Use real examples or data if possible
-
-Do not give the final verdict — only score and reasoning per criterion.
-          `
-          },
-          {
             role: "user",
-            content: message
-          }
-        ]
-      })
+            content: `
+You are a cynical startup analyst. A user wants to validate a startup idea.
+
+The idea is: "${message}"
+
+Your task is to evaluate the idea using the following criteria. Use plain language, real-world data if available, and give a numeric rating (1–5) for each point.
+
+**Evaluation Template:**
+
+1. Clarity of the idea:
+- Rating:
+- Reasoning:
+
+2. Market size and growth:
+- Rating:
+- Reasoning:
+- Use real data if possible (e.g., TAM, market reports, country-specific stats).
+
+3. Uniqueness / Competitive Advantage:
+- Rating:
+- Reasoning:
+- Compare against existing players.
+
+4. Feasibility of execution:
+- Rating:
+- Reasoning:
+- Be honest about tech, resources, legal, and operations.
+
+5. Monetization potential:
+- Rating:
+- Reasoning:
+- Mention realistic models (ads, subscriptions, SaaS, etc.).
+
+Then give a:
+📊 Total Score (out of 25):
+📌 Verdict (Choose one): [Strong Potential / Needs Work / Unlikely to Succeed]
+
+Be brutally honest, but constructive. No generic praise.
+            `,
+          },
+        ],
+      }),
     });
 
     const data = await response.json();
-    let aiReply = data.choices?.[0]?.message?.content || "⚠️ AI returned no message.";
 
-    // Extract ratings
-    const ratingRegex = /Rating:\s*([1-5])\/5/g;
-    let match;
-    let totalScore = 0;
-    while ((match = ratingRegex.exec(aiReply)) !== null) {
-      totalScore += parseInt(match[1]);
-    }
-
-    // Decide verdict
-    let verdict = "";
-    if (totalScore <= 10) verdict = "❌ Not Viable";
-    else if (totalScore <= 17) verdict = "⚠️ Needs Refinement";
-    else if (totalScore <= 22) verdict = "✅ Promising";
-    else verdict = "🌟 High-Potential";
-
-    // Append total and verdict
-    aiReply += `
-
-📌 **Total Score:** ${totalScore}/25  
-📌 **Verdict:** ${verdict}`;
-
-    return new Response(JSON.stringify({ evaluation: aiReply }), {
+    const aiMessage = data.choices?.[0]?.message?.content || "⚠️ AI returned no message.";
+    return new Response(JSON.stringify({ evaluation: aiMessage }), {
       headers: { "Content-Type": "application/json" },
     });
-
-  } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
+  } catch (err) {
+    return new Response(JSON.stringify({ error: "⚠️ Internal error: " + err.message }), {
       headers: { "Content-Type": "application/json" },
+      status: 500,
     });
   }
 }
