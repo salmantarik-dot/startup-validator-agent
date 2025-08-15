@@ -2,10 +2,10 @@ export async function onRequestPost(context) {
   try {
     const { message } = await context.request.json();
 
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    const apiResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${context.env.OPENROUTER_API_KEY}`,
+        "Authorization": "Bearer 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",
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
@@ -13,27 +13,12 @@ export async function onRequestPost(context) {
         messages: [
           {
             role: "system",
-            content: `You are a startup idea evaluator. For the given idea, evaluate it based on:
-1. Clarity of the idea
-2. Market size and growth
-3. Uniqueness / Competitive Advantage
-4. Feasibility of execution
-5. Monetization potential
-
-For each:
-- Give a rating out of 5
-- Explain reasoning in plain English
-- Reference real-world data if possible
-
-At the end:
-- Calculate total score (out of 25)
-- Add a badge:
-  • 21–25: 🚀 Investor-Ready
-  • 16–20: ⭐️ Promising MVP
-  • 11–15: ⚠️ Needs Refinement
-  • 0–10: ❌ High Risk or Unclear
-
-Respond in clean Markdown with headers.`
+            content: `
+Return a startup evaluation report in clean HTML with bold headings and scores. Make sure it is SHORT, FORMATTED, and safe to include inside a JSON string.
+DO NOT use line breaks outside of HTML.
+DO NOT use markdown.
+Wrap everything inside a <div>.
+            `.trim()
           },
           {
             role: "user",
@@ -43,24 +28,29 @@ Respond in clean Markdown with headers.`
       })
     });
 
-    const data = await response.json();
+    const json = await apiResponse.json();
+    const aiText = json?.choices?.[0]?.message?.content || "";
 
-    if (!data.choices || data.choices.length === 0) {
-      return new Response(
-        JSON.stringify({ evaluation: "⚠️ AI returned no message." }),
-        { headers: { "Content-Type": "application/json" } }
-      );
-    }
-
-    const reply = data.choices[0].message.content;
-
-    return new Response(JSON.stringify({ evaluation: reply }), {
-      headers: { "Content-Type": "application/json" }
-    });
-  } catch (error) {
+    // Ensure we return proper JSON
     return new Response(
-      JSON.stringify({ evaluation: "⚠️ Error occurred during evaluation." }),
-      { headers: { "Content-Type": "application/json" } }
+      JSON.stringify({ html: aiText }),
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*"
+        }
+      }
+    );
+  } catch (error) {
+    console.error("Validation Error:", error);
+    return new Response(
+      JSON.stringify({ html: "<p>❌ AI error. Try again later.</p>" }),
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*"
+        }
+      }
     );
   }
 }
