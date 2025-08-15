@@ -3,7 +3,7 @@ export async function onRequestPost(context) {
     const { message } = await context.request.json();
 
     if (!message) {
-      return new Response(JSON.stringify({ feedback: 'No input provided.' }), {
+      return new Response(JSON.stringify({ feedback: '⚠️ No input provided.' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' },
       });
@@ -22,24 +22,24 @@ export async function onRequestPost(context) {
         messages: [
           {
             role: 'system',
-            content: `You are a startup validation expert for a government incubation program. The user will give you a startup idea. Your job is to critically evaluate it across 5 categories:
+            content: `You are a startup validation expert for a government incubation program. Evaluate the startup idea the user gives you across:
 
-1. Clarity of idea
-2. Market size and need
-3. Uniqueness / Innovation
-4. Feasibility in emerging markets like Pakistan
-5. Monetization potential
+1. ✅ Clarity of idea  
+2. 📊 Market size and demand  
+3. 💡 Uniqueness and innovation  
+4. ⚙️ Feasibility in emerging markets like Pakistan  
+5. 💰 Monetization potential  
 
-Your response should be in this format:
-"✅ Clarity: ...
-📊 Market: ...
-💡 Uniqueness: ...
-⚙️ Feasibility: ...
-💰 Monetization: ...
+Use this format:
+✅ Clarity: ...  
+📊 Market: ...  
+💡 Uniqueness: ...  
+⚙️ Feasibility: ...  
+💰 Monetization: ...  
 
-🌟 Overall verdict: [Strongly Recommend / Recommend with Revisions / Not Recommended]"
+🌟 Overall verdict: Strongly Recommend / Recommend with Revisions / Not Recommended  
 
-Do not add anything else. Be realistic, concise, and helpful.`,
+No intro or outro. Just the analysis.`,
           },
           {
             role: 'user',
@@ -51,14 +51,22 @@ Do not add anything else. Be realistic, concise, and helpful.`,
 
     const result = await response.json();
 
-    const feedback = result.choices?.[0]?.message?.content;
+    const feedback = result?.choices?.[0]?.message?.content;
 
-    return new Response(JSON.stringify({ feedback: feedback || 'No feedback returned.' }), {
+    if (!feedback || feedback.trim() === '') {
+      return new Response(
+        JSON.stringify({ feedback: '⚠️ AI response was empty. Please try again.' }),
+        { headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    return new Response(JSON.stringify({ feedback }), {
       headers: { 'Content-Type': 'application/json' },
     });
+
   } catch (error) {
     return new Response(
-      JSON.stringify({ error: 'AI request failed.', details: error.message }),
+      JSON.stringify({ feedback: '❌ Something went wrong.', error: error.message }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }
