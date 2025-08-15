@@ -1,77 +1,63 @@
+// functions/api/validate.js
+
 export async function onRequestPost(context) {
   try {
     const { message } = await context.request.json();
+    const apiKey = context.env.OPENROUTER_API_KEY;
 
     const prompt = `
-You are a cynical investor evaluating a startup idea. Rate the idea across the following five international-standard dimensions (1–10 scale), and give a reason for each score:
+You are a brutally honest startup idea evaluator who uses international startup frameworks like Y Combinator’s checklist, VC scoring, and the OECD innovation model. Analyze the following idea across:
 
-1. Clarity – How clearly is the idea communicated?
-2. Market Size – Is there a real and large addressable market?
-3. Uniqueness – Is this idea meaningfully different from existing solutions?
-4. Feasibility – Can this be realistically built and launched?
-5. Monetization – Are there viable paths to generate revenue?
+1. ✅ Clarity – Is the idea clearly described?
+2. 📊 Market Size – Is the target market meaningful in size and need?
+3. 💡 Uniqueness – Is this solving a truly new or underserved problem?
+4. 🔧 Feasibility – Is it realistic to build and scale this?
+5. 💰 Monetization – Is there a clear path to make money?
 
-Then provide a brief summary on whether the idea is worth exploring further. If helpful, cite real-world trends or examples.
+For each point, rate it 1–5 with short reasoning.
 
-Startup idea: "${message}"
+📌 Overall Summary:
+Provide a blunt verdict — is this idea worth pursuing? Be honest, even if it hurts.
 
-Output as strict JSON like this:
-{
-  "feedback": "Overall feedback text...",
-  "scores": {
-    "Clarity": { "score": 8, "reason": "..." },
-    "Market Size": { "score": 6, "reason": "..." },
-    ...
-  },
-  "summary": "Final verdict"
-}
+Startup Idea:
+${message}
 `;
 
-    const aiResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${OPENROUTER_API_KEY}`, // replace with your secret binding
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json"
       },
       body: JSON.stringify({
         model: "openai/gpt-3.5-turbo",
         messages: [
-          { role: "system", content: "You are a critical startup evaluator." },
-          { role: "user", content: prompt }
-        ],
-      }),
+          {
+            role: "user",
+            content: prompt
+          }
+        ]
+      })
     });
 
-    const result = await aiResponse.json();
+    const data = await response.json();
 
-    const content = result.choices?.[0]?.message?.content || "";
+    // DEBUGGING
+    console.log("🔍 OpenRouter raw response:", JSON.stringify(data, null, 2));
 
-    // Try to safely parse
-    let parsed;
-    try {
-      parsed = JSON.parse(content);
-    } catch (err) {
-      return new Response(
-        JSON.stringify({
-          feedback: "⚠️ AI returned an invalid JSON format.",
-          scores: {},
-          summary: "The AI could not generate structured feedback.",
-        }),
-        { headers: { "Content-Type": "application/json" } }
-      );
-    }
-
-    return new Response(JSON.stringify(parsed), {
-      headers: { "Content-Type": "application/json" },
+    const aiMessage = data.choices?.[0]?.message?.content || "⚠️ AI returned no message.";
+    return new Response(JSON.stringify({ feedback: aiMessage }), {
+      headers: { "Content-Type": "application/json" }
     });
+
   } catch (err) {
-    return new Response(
-      JSON.stringify({
-        feedback: "❌ Server error.",
-        scores: {},
-        summary: "An internal error occurred.",
-      }),
-      { headers: { "Content-Type": "application/json" }, status: 500 }
-    );
+    console.error("❌ Internal error:", err);
+    return new Response(JSON.stringify({
+      feedback: "📌 Overall Summary:\nAn internal error occurred.",
+      error: err.message
+    }), {
+      headers: { "Content-Type": "application/json" },
+      status: 500
+    });
   }
 }
