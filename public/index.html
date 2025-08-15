@@ -7,70 +7,132 @@
   <style>
     body {
       font-family: sans-serif;
-      max-width: 800px;
+      max-width: 700px;
       margin: 40px auto;
-      padding: 20px;
+      padding: 0 20px;
     }
+
+    h1 {
+      font-size: 28px;
+      text-align: center;
+    }
+
     textarea {
       width: 100%;
+      font-size: 16px;
       padding: 10px;
-      font-size: 1em;
     }
+
     button {
       padding: 10px 20px;
-      font-size: 1em;
+      font-size: 16px;
+      margin-top: 10px;
+      cursor: pointer;
     }
-    pre {
-      background-color: #f4f4f4;
-      padding: 15px;
-      border-left: 5px solid green;
+
+    #response {
       white-space: pre-wrap;
+      background: #f9f9f9;
+      padding: 20px;
+      margin-top: 20px;
+      border: 1px solid #ccc;
+    }
+
+    #scoreSection {
+      margin-top: 20px;
+      display: none;
+      border-top: 1px solid #ddd;
+      padding-top: 20px;
+    }
+
+    .badge-high {
+      background-color: #2ecc71;
+    }
+
+    .badge-medium {
+      background-color: #f1c40f;
+    }
+
+    .badge-low {
+      background-color: #e74c3c;
+    }
+
+    #badgeLabel {
+      padding: 5px 10px;
+      border-radius: 5px;
+      color: white;
     }
   </style>
 </head>
 <body>
-  <h1>🚀 Startup Validator Agent</h1>
-  <form id="validator-form">
-    <label for="idea">💡 Describe your startup idea:</label><br/><br/>
-    <textarea id="idea" rows="6" placeholder="e.g. A platform to connect Pakistani freelancers to global clients with escrow protection"></textarea><br/><br/>
-    <button type="submit">Evaluate Idea</button>
+  <h1>🧠 Startup Validator Agent</h1>
+
+  <form id="policy-form">
+    <label for="points">Describe your startup idea:</label><br/>
+    <textarea id="points" rows="6" placeholder="e.g. A platform to connect disabled individuals to global remote jobs"></textarea><br/>
+    <button type="submit">Validate Idea</button>
   </form>
-  <div id="output" style="margin-top: 30px;"></div>
 
- <script>
-  const form = document.getElementById("validator-form");
-  const output = document.getElementById("output");
+  <div id="response"></div>
 
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const message = document.getElementById("idea").value.trim();
+  <div id="scoreSection">
+    <h2>Startup Evaluation Summary</h2>
+    <p><strong>Total Score:</strong> <span id="totalScore"></span>/25</p>
+    <p>
+      <strong>Badge:</strong>
+      <span id="badgeLabel"></span>
+    </p>
+  </div>
 
-    if (!message) {
-      output.innerText = "❌ Please enter your startup idea.";
-      return;
-    }
+  <script>
+    const form = document.getElementById('policy-form');
+    const responseDiv = document.getElementById('response');
 
-    output.innerText = "⏳ Evaluating your startup idea...";
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const message = document.getElementById('points').value;
+      responseDiv.innerHTML = 'Validating idea...';
 
-    try {
-      const response = await fetch("/api/validate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message }),
-      });
+      try {
+        const res = await fetch('/api/validate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message })
+        });
 
-      const data = await response.json();
+        const data = await res.json();
 
-      if (data.evaluation) {
-        output.innerHTML = `<pre>${data.evaluation}</pre>`;
-      } else {
-        output.innerText = "⚠️ AI returned no message.";
+        if (data.evaluation) {
+          responseDiv.innerHTML = data.evaluation;
+
+          // Score + Badge
+          if (data.score && data.badge) {
+            const scoreSection = document.getElementById('scoreSection');
+            const badgeLabel = document.getElementById('badgeLabel');
+            const totalScore = document.getElementById('totalScore');
+
+            totalScore.textContent = data.score;
+            badgeLabel.textContent = data.badge;
+
+            badgeLabel.className = ''; // reset
+
+            if (data.badge.toLowerCase().includes("investor")) {
+              badgeLabel.classList.add('badge-high');
+            } else if (data.badge.toLowerCase().includes("promising")) {
+              badgeLabel.classList.add('badge-medium');
+            } else {
+              badgeLabel.classList.add('badge-low');
+            }
+
+            scoreSection.style.display = 'block';
+          }
+        } else {
+          responseDiv.innerHTML = "⚠️ AI returned no message.";
+        }
+      } catch (error) {
+        responseDiv.innerHTML = "❌ Error: " + error.message;
       }
-    } catch (err) {
-      console.error("Fetch error:", err);
-      output.innerText = "🚨 Error connecting to the AI.";
-    }
-  });
-</script>
+    });
+  </script>
 </body>
 </html>
