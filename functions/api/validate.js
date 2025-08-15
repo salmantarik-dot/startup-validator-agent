@@ -1,63 +1,75 @@
 export async function onRequestPost(context) {
   const { request, env } = context;
-
-  const { message } = await request.json();
+  const body = await request.json();
+  const message = body.message || "";
 
   const prompt = `
-You are a brutally honest but fair startup evaluator in an accelerator panel.
+You are a brutally honest startup evaluator trained in global investor frameworks (Y Combinator, Sequoia, Index Ventures, etc.). A founder will share their idea. You must:
 
-Given the following startup idea: "${message}", evaluate it across these 5 criteria:
+1. Evaluate the idea across 7 categories:
+   - Clarity
+   - Problem Significance
+   - Market Size
+   - Competitive Edge
+   - Execution Feasibility
+   - Monetization
+   - Realism Check (especially in emerging markets like Pakistan)
 
-1. Clarity (is the idea clearly defined?)
-2. Market Size (is it targeting a big and real market?)
-3. Uniqueness (what sets it apart from existing solutions?)
-4. Feasibility (can it be realistically built and scaled?)
-5. Monetization (are there viable ways to make money?)
+2. For each category, give:
+   - A clear explanation
+   - A cynical truth if needed
+   - A score from 1 (terrible) to 5 (excellent)
 
-For each, rate it out of 10 and give 1–2 lines of reason. Be constructive but also skeptical. Use real data where possible (you may simulate if needed, but sound grounded). Conclude with a 2–3 line verdict summarizing the potential, red flags, and one key recommendation.
+3. End with a final recommendation:
+   - Use blunt language like “not ready”, “average pitch”, “promising but naive”, etc.
 
-Format the output like this:
+4. Reference real data or known patterns if applicable (e.g. Pakistan’s freelancer export value, app competition, funding trends).
 
-👓 Idea: [idea]
+Here is the idea to evaluate:
+"${message}"
 
-🔍 Evaluation:
+Respond in the following format:
 
-1. Clarity – ?/10  
-   Reason...
+AI Feedback:
+1. Clarity [Score: x/5] - your comment
+2. Problem Significance [Score: x/5] - your comment
+3. Market Size [Score: x/5] - your comment
+4. Competitive Edge [Score: x/5] - your comment
+5. Execution Feasibility [Score: x/5] - your comment
+6. Monetization [Score: x/5] - your comment
+7. Realism Check [Score: x/5] - your comment
 
-2. Market Size – ?/10  
-   Reason...
-
-...
-
-🧠 Verdict:
-Your final thoughts and recommendation.
+🎯 Final Verdict: [your honest assessment]
 `;
 
   try {
-    const completion = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${env.OPENROUTER_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "openai/gpt-3.5-turbo", // or gpt-4 if you want and have access
-        messages: [{ role: "user", content: prompt }],
+        model: "openrouter/gpt-4o",
+        messages: [
+          {
+            role: "user",
+            content: prompt,
+          },
+        ],
       }),
     });
 
-    const { choices } = await completion.json();
-    const feedback = choices?.[0]?.message?.content || "No feedback returned.";
-
-    return new Response(JSON.stringify({ feedback }), {
+    const data = await response.json();
+    const aiMessage = data.choices?.[0]?.message?.content || "⚠️ AI returned no message.";
+    return new Response(JSON.stringify({ feedback: aiMessage }), {
       headers: { "Content-Type": "application/json" },
     });
 
-  } catch (err) {
-    return new Response(JSON.stringify({ feedback: null, error: err.message }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+  } catch (error) {
+    return new Response(
+      JSON.stringify({ feedback: "❌ Server error. Please try again later." }),
+      { headers: { "Content-Type": "application/json" }, status: 500 }
+    );
   }
 }
