@@ -1,73 +1,68 @@
 export async function onRequestPost(context) {
   try {
     const { message } = await context.request.json();
-    const apiKey = context.env.OPENROUTER_API_KEY;
 
     const prompt = `
-You are a startup validation expert at a government incubator.
+You are a startup evaluator AI agent. Based on the startup idea below, evaluate the following 5 dimensions and return your feedback in a structured way:
 
-A founder has submitted the following startup idea:
+1. ✅ Clarity – Is the idea clearly stated?
+2. 📊 Market Size – Is the target market significant?
+3. 💡 Uniqueness – Is this idea differentiated from others?
+4. 🔧 Feasibility – Is it realistic to build this?
+5. 💰 Monetization – Are there valid ways to earn money?
+
+Startup Idea:
 "${message}"
 
-Please evaluate the idea across the following 5 criteria:
-1. ✅ Clarity – Is the idea clearly described?
-2. 📊 Market Size – Does it target a meaningful audience?
-3. 💡 Uniqueness – Is it innovative or already common?
-4. 🔧 Feasibility – Can it realistically be built with reasonable resources?
-5. 💰 Monetization – Is there a viable way to make money?
+Respond only in the format below:
 
-Return clear feedback under each point. Use plain English.
-Be honest but supportive. Avoid fluff.
-`.trim();
+AI Feedback:
+1. ✅ Clarity – ...
+2. 📊 Market Size – ...
+3. 💡 Uniqueness – ...
+4. 🔧 Feasibility – ...
+5. 💰 Monetization – ...
+
+Then provide a 1-paragraph summary giving overall advice or encouragement.
+`;
+
+    const apiKey = context.env.OPENROUTER_API_KEY;
 
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
+        "Content-Type": "application/json",
         "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "gpt-3.5-turbo",
-        messages: [{ role: "user", content: prompt }],
+        model: "openrouter/gpt-3.5-turbo",
+        messages: [
+          { role: "system", content: "You are a helpful and structured startup idea evaluator." },
+          { role: "user", content: prompt }
+        ]
       })
     });
 
-    const raw = await response.text(); // Get full response text for debugging
-    let data;
+    const data = await response.json();
 
-    try {
-      data = JSON.parse(raw);
-    } catch (jsonErr) {
-      return new Response(JSON.stringify({
-        feedback: "⚠️ Failed to parse AI response.",
-        rawResponse: raw,
-        error: jsonErr.message
-      }), {
+    const aiMessage = data.choices?.[0]?.message?.content;
+
+    if (!aiMessage) {
+      return new Response(JSON.stringify({ feedback: "⚠️ AI returned no message." }), {
         headers: { "Content-Type": "application/json" },
+        status: 200,
       });
     }
 
-    const aiReply = data.choices?.[0]?.message?.content;
-
-    if (!aiReply) {
-      return new Response(JSON.stringify({
-        feedback: "⚠️ AI returned no message.",
-        rawResponse: raw
-      }), {
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    return new Response(JSON.stringify({ feedback: aiReply }), {
+    return new Response(JSON.stringify({ feedback: aiMessage }), {
       headers: { "Content-Type": "application/json" },
+      status: 200,
     });
 
   } catch (err) {
-    return new Response(JSON.stringify({
-      feedback: "⚠️ Unexpected error.",
-      error: err.message
-    }), {
+    return new Response(JSON.stringify({ feedback: "❌ Error processing request", error: err.message }), {
       headers: { "Content-Type": "application/json" },
+      status: 500,
     });
   }
 }
