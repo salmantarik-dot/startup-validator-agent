@@ -6,82 +6,124 @@
   <title>Startup Validator Agent</title>
   <style>
     body {
-      font-family: sans-serif;
-      max-width: 700px;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f3f6f9;
+      color: #333;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 800px;
       margin: 40px auto;
-      padding: 0 20px;
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.1);
     }
 
     h1 {
-      font-size: 28px;
       text-align: center;
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+
+    p.description {
+      text-align: center;
+      color: #666;
+      margin-top: 0;
     }
 
     textarea {
       width: 100%;
       font-size: 16px;
-      padding: 10px;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      margin-top: 10px;
+      box-sizing: border-box;
     }
 
     button {
-      padding: 10px 20px;
+      background-color: #007bff;
+      color: white;
+      padding: 12px 24px;
       font-size: 16px;
-      margin-top: 10px;
+      border: none;
+      border-radius: 8px;
+      margin-top: 15px;
       cursor: pointer;
     }
 
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    .section {
+      margin-top: 30px;
+    }
+
     #response {
-      white-space: pre-wrap;
       background: #f9f9f9;
       padding: 20px;
-      margin-top: 20px;
-      border: 1px solid #ccc;
+      border-left: 5px solid #007bff;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      line-height: 1.6;
     }
 
     #scoreSection {
-      margin-top: 20px;
-      display: none;
-      border-top: 1px solid #ddd;
-      padding-top: 20px;
+      margin-top: 25px;
+      padding: 20px;
+      background-color: #fdfdfd;
+      border-radius: 8px;
+      border: 1px solid #eee;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 20px;
+      color: white;
+      font-weight: bold;
     }
 
     .badge-high {
-      background-color: #2ecc71;
+      background-color: #28a745;
     }
 
     .badge-medium {
-      background-color: #f1c40f;
+      background-color: #ffc107;
+      color: #212529;
     }
 
     .badge-low {
-      background-color: #e74c3c;
+      background-color: #dc3545;
     }
 
-    #badgeLabel {
-      padding: 5px 10px;
-      border-radius: 5px;
-      color: white;
+    label {
+      font-weight: 600;
     }
   </style>
 </head>
 <body>
-  <h1>🧠 Startup Validator Agent</h1>
+  <div class="container">
+    <h1>🧠 Startup Validator Agent</h1>
+    <p class="description">Get a detailed evaluation of your startup idea in seconds.</p>
 
-  <form id="policy-form">
-    <label for="points">Describe your startup idea:</label><br/>
-    <textarea id="points" rows="6" placeholder="e.g. A platform to connect disabled individuals to global remote jobs"></textarea><br/>
-    <button type="submit">Validate Idea</button>
-  </form>
+    <form id="policy-form">
+      <label for="points">Describe your startup idea:</label><br/>
+      <textarea id="points" rows="5" placeholder="e.g. A platform to connect disabled individuals to global remote jobs"></textarea><br/>
+      <button type="submit">Validate Idea</button>
+    </form>
 
-  <div id="response"></div>
+    <div class="section" id="response"></div>
 
-  <div id="scoreSection">
-    <h2>Startup Evaluation Summary</h2>
-    <p><strong>Total Score:</strong> <span id="totalScore"></span>/25</p>
-    <p>
-      <strong>Badge:</strong>
-      <span id="badgeLabel"></span>
-    </p>
+    <div id="scoreSection" class="section" style="display: none;">
+      <h2>Startup Evaluation Scorecard</h2>
+      <p><strong>Total Score:</strong> <span id="totalScore"></span> / 25</p>
+      <p><strong>Badge:</strong> <span id="badgeLabel" class="badge"></span></p>
+    </div>
   </div>
 
   <script>
@@ -105,7 +147,6 @@
         if (data.evaluation) {
           responseDiv.innerHTML = data.evaluation;
 
-          // Score + Badge
           if (data.score && data.badge) {
             const scoreSection = document.getElementById('scoreSection');
             const badgeLabel = document.getElementById('badgeLabel');
@@ -114,7 +155,7 @@
             totalScore.textContent = data.score;
             badgeLabel.textContent = data.badge;
 
-            badgeLabel.className = ''; // reset
+            badgeLabel.className = 'badge'; // reset first
 
             if (data.badge.toLowerCase().includes("investor")) {
               badgeLabel.classList.add('badge-high');
