@@ -6,18 +6,20 @@ export async function onRequestPost(context) {
     const apiKey = context.env.OPENROUTER_API_KEY;
 
     const prompt = `
-You are a brutally honest startup idea evaluator who uses international startup frameworks like Y Combinator’s checklist, VC scoring, and the OECD innovation model. Analyze the following idea across:
+You are a brutally honest startup idea evaluator using global best practices (Y Combinator checklist, VC scoring, OECD innovation model). Evaluate the idea below using these five criteria, and give:
 
-1. ✅ Clarity – Is the idea clearly described?
-2. 📊 Market Size – Is the target market meaningful in size and need?
-3. 💡 Uniqueness – Is this solving a truly new or underserved problem?
-4. 🔧 Feasibility – Is it realistic to build and scale this?
-5. 💰 Monetization – Is there a clear path to make money?
+- A rating (1–5) for each
+- A one-line reason
+- Real-world context/data if possible
 
-For each point, rate it 1–5 with short reasoning.
+Criteria:
+1. ✅ Clarity – Is the idea clear and understandable?
+2. 📊 Market Size – Is it targeting a large or growing market?
+3. 💡 Uniqueness – Is it solving a truly unique or underserved problem?
+4. 🔧 Feasibility – Can it realistically be built and scaled?
+5. 💰 Monetization – Is there a clear path to sustainable revenue?
 
-📌 Overall Summary:
-Provide a blunt verdict — is this idea worth pursuing? Be honest, even if it hurts.
+📌 Overall Summary: Should this idea be pursued? Be blunt and clear.
 
 Startup Idea:
 ${message}
@@ -31,19 +33,15 @@ ${message}
       },
       body: JSON.stringify({
         model: "openai/gpt-3.5-turbo",
-        messages: [
-          {
-            role: "user",
-            content: prompt
-          }
-        ]
+        messages: [{ role: "user", content: prompt }]
       })
     });
 
-    const data = await response.json();
+    const raw = await response.text();
 
-    // DEBUGGING
-    console.log("🔍 OpenRouter raw response:", JSON.stringify(data, null, 2));
+    console.log("🧾 RAW API RESPONSE:", raw); // debug log
+
+    const data = JSON.parse(raw);
 
     const aiMessage = data.choices?.[0]?.message?.content || "⚠️ AI returned no message.";
     return new Response(JSON.stringify({ feedback: aiMessage }), {
@@ -51,7 +49,7 @@ ${message}
     });
 
   } catch (err) {
-    console.error("❌ Internal error:", err);
+    console.error("❌ INTERNAL ERROR:", err);
     return new Response(JSON.stringify({
       feedback: "📌 Overall Summary:\nAn internal error occurred.",
       error: err.message
