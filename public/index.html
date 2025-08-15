@@ -7,133 +7,158 @@
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      background-color: #f3f6f9;
-      color: #333;
-      margin: 0;
-      padding: 0;
-    }
-
-    .container {
-      max-width: 800px;
+      max-width: 750px;
       margin: 40px auto;
-      background: white;
+      background: linear-gradient(135deg, #fef6f9, #f0faff);
       padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+      border-radius: 20px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
     }
 
     h1 {
       text-align: center;
+      color: #2b2e4a;
       font-size: 28px;
       margin-bottom: 10px;
     }
 
-    p.description {
+    .subtitle {
       text-align: center;
-      color: #666;
-      margin-top: 0;
-    }
-
-    textarea {
-      width: 100%;
+      color: #7e7f9a;
       font-size: 16px;
-      padding: 12px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      margin-top: 10px;
-      box-sizing: border-box;
-    }
-
-    button {
-      background-color: #007bff;
-      color: white;
-      padding: 12px 24px;
-      font-size: 16px;
-      border: none;
-      border-radius: 8px;
-      margin-top: 15px;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background-color: #0056b3;
-    }
-
-    .section {
-      margin-top: 30px;
-    }
-
-    #response {
-      background: #f9f9f9;
-      padding: 20px;
-      border-left: 5px solid #007bff;
-      border-radius: 8px;
-      white-space: pre-wrap;
-      line-height: 1.6;
-    }
-
-    #scoreSection {
-      margin-top: 25px;
-      padding: 20px;
-      background-color: #fdfdfd;
-      border-radius: 8px;
-      border: 1px solid #eee;
-    }
-
-    .badge {
-      display: inline-block;
-      padding: 6px 12px;
-      border-radius: 20px;
-      color: white;
-      font-weight: bold;
-    }
-
-    .badge-high {
-      background-color: #28a745;
-    }
-
-    .badge-medium {
-      background-color: #ffc107;
-      color: #212529;
-    }
-
-    .badge-low {
-      background-color: #dc3545;
+      margin-bottom: 30px;
     }
 
     label {
       font-weight: 600;
+      display: block;
+      margin-top: 20px;
+      margin-bottom: 8px;
+      color: #3a3d56;
     }
+
+    textarea {
+      width: 100%;
+      padding: 12px 14px;
+      font-size: 14px;
+      border-radius: 12px;
+      border: 1px solid #ccc;
+      background-color: #ffffff;
+      resize: vertical;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.04);
+    }
+
+    button {
+      margin-top: 30px;
+      padding: 14px 24px;
+      background-color: #1fab89;
+      color: white;
+      font-size: 16px;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      display: block;
+      width: 100%;
+    }
+
+    button:hover {
+      background-color: #138d75;
+    }
+
+    .response {
+      white-space: pre-wrap;
+      margin-top: 40px;
+      background-color: #ffffff;
+      padding: 24px;
+      border-radius: 15px;
+      border: 1px solid #ddd;
+      font-size: 14px;
+      color: #333;
+    }
+
+    .score-badge {
+      font-weight: bold;
+      padding: 10px 14px;
+      display: inline-block;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      font-size: 16px;
+    }
+
+    .badge-great {
+      background-color: #d1f2eb;
+      color: #0e6251;
+    }
+
+    .badge-good {
+      background-color: #fcf3cf;
+      color: #7d6608;
+    }
+
+    .badge-poor {
+      background-color: #f5b7b1;
+      color: #78281f;
+    }
+
+    footer {
+      margin-top: 50px;
+      text-align: center;
+      font-size: 14px;
+      color: #999;
+    }
+
+    footer strong {
+      color: #4a4a4a;
+    }
+
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>🧠 Startup Validator Agent</h1>
-    <p class="description">Get a detailed evaluation of your startup idea in seconds.</p>
+  <h1>🚀 Startup Validator Agent</h1>
+  <div class="subtitle">by <strong>PITB Incubation Wing</strong></div>
 
-    <form id="policy-form">
-      <label for="points">Describe your startup idea:</label><br/>
-      <textarea id="points" rows="5" placeholder="e.g. A platform to connect disabled individuals to global remote jobs"></textarea><br/>
-      <button type="submit">Validate Idea</button>
-    </form>
+  <form id="startup-form">
+    <label>1. What is your startup idea? (Clarity)</label>
+    <textarea id="clarity" rows="2" placeholder="Clearly describe the idea"></textarea>
 
-    <div class="section" id="response"></div>
+    <label>2. Who is your target market? How big is the opportunity? (Market size)</label>
+    <textarea id="market" rows="2" placeholder="e.g. 1 million+ potential users in Pakistan"></textarea>
 
-    <div id="scoreSection" class="section" style="display: none;">
-      <h2>Startup Evaluation Scorecard</h2>
-      <p><strong>Total Score:</strong> <span id="totalScore"></span> / 25</p>
-      <p><strong>Badge:</strong> <span id="badgeLabel" class="badge"></span></p>
-    </div>
-  </div>
+    <label>3. What makes your solution unique? (Uniqueness / Competitive advantage)</label>
+    <textarea id="uniqueness" rows="2" placeholder="e.g. First to offer X, patented approach, etc."></textarea>
+
+    <label>4. How do you plan to build and launch it? (Feasibility of execution)</label>
+    <textarea id="feasibility" rows="2" placeholder="e.g. My co-founder is a civil engineer, we have access to local manufacturers"></textarea>
+
+    <label>5. How will you make money? (Monetization potential)</label>
+    <textarea id="monetization" rows="2" placeholder="e.g. Subscription model, government partnerships, etc."></textarea>
+
+    <button type="submit">✅ Validate My Idea</button>
+  </form>
+
+  <div id="response" class="response"></div>
+
+  <footer>
+    🧠 <strong>Startup Validator Agent</strong> by <strong>PITB Incubation Wing</strong>
+  </footer>
 
   <script>
-    const form = document.getElementById('policy-form');
+    const form = document.getElementById('startup-form');
     const responseDiv = document.getElementById('response');
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const message = document.getElementById('points').value;
-      responseDiv.innerHTML = 'Validating idea...';
+
+      const message = `
+Startup Idea (Clarity): ${document.getElementById('clarity').value}
+Market Size: ${document.getElementById('market').value}
+Uniqueness: ${document.getElementById('uniqueness').value}
+Feasibility: ${document.getElementById('feasibility').value}
+Monetization: ${document.getElementById('monetization').value}
+`;
+
+      responseDiv.innerHTML = '⏳ Validating your startup...';
 
       try {
         const res = await fetch('/api/validate', {
@@ -145,32 +170,24 @@
         const data = await res.json();
 
         if (data.evaluation) {
-          responseDiv.innerHTML = data.evaluation;
+          const scoreMatch = data.evaluation.match(/Overall Score:\s*(\d+)/i);
+          let badgeHTML = '';
+          if (scoreMatch) {
+            const score = parseInt(scoreMatch[1]);
+            let badgeClass = 'badge-poor';
+            if (score >= 17) badgeClass = 'badge-great';
+            else if (score >= 13) badgeClass = 'badge-good';
 
-          if (data.score && data.badge) {
-            const scoreSection = document.getElementById('scoreSection');
-            const badgeLabel = document.getElementById('badgeLabel');
-            const totalScore = document.getElementById('totalScore');
-
-            totalScore.textContent = data.score;
-            badgeLabel.textContent = data.badge;
-
-            badgeLabel.className = 'badge'; // reset
-            if (data.badge.toLowerCase().includes("investor")) {
-              badgeLabel.classList.add('badge-high');
-            } else if (data.badge.toLowerCase().includes("promising")) {
-              badgeLabel.classList.add('badge-medium');
-            } else {
-              badgeLabel.classList.add('badge-low');
-            }
-
-            scoreSection.style.display = 'block';
+            badgeHTML = `<div class="score-badge ${badgeClass}">🌟 Overall Score: ${score}/25</div>`;
           }
+
+          responseDiv.innerHTML = badgeHTML + `<div>${data.evaluation}</div>`;
         } else {
-          responseDiv.innerHTML = "⚠️ AI returned no message.";
+          responseDiv.innerText = '⚠️ AI returned no message.';
         }
       } catch (error) {
-        responseDiv.innerHTML = "❌ Error: " + error.message;
+        console.error(error);
+        responseDiv.innerText = '❌ Error occurred while fetching response.';
       }
     });
   </script>
