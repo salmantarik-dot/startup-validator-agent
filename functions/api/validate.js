@@ -1,56 +1,60 @@
 export async function onRequestPost(context) {
   try {
-    const { message } = await context.request.json();
+    const { idea, market, uniqueness, feasibility, monetization } = await context.request.json();
 
-    const apiResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    const prompt = `
+Evaluate the following startup idea based on 5 key dimensions. For each, provide a rating from 1 to 5, a brief reasoning, and real-world context or market data. Present the result in a clear, bolded, and visually professional format with headings and bullet points.
+
+Startup Idea Description:
+1. Clarity of the idea: ${idea}
+2. Market size and growth: ${market}
+3. Uniqueness / Competitive Advantage: ${uniqueness}
+4. Feasibility of execution: ${feasibility}
+5. Monetization potential: ${monetization}
+
+Format:
+- Use **bold** headings.
+- Add line breaks for readability.
+- Respond as if giving feedback to a real founder.
+`;
+
+    const OPENROUTER_API_KEY = context.env.OPENROUTER_API_KEY;
+
+    const completion = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": "Bearer "Authorization":`Bearer ${OPENROUTER_API_KEY}',
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${OPENROUTER_API_KEY}`
       },
       body: JSON.stringify({
         model: "openai/gpt-3.5-turbo",
         messages: [
           {
-            role: "system",
-            content: `
-Return a startup evaluation report in clean HTML with bold headings and scores. Make sure it is SHORT, FORMATTED, and safe to include inside a JSON string.
-DO NOT use line breaks outside of HTML.
-DO NOT use markdown.
-Wrap everything inside a <div>.
-            `.trim()
-          },
-          {
             role: "user",
-            content: message
+            content: prompt
           }
         ]
       })
     });
 
-    const json = await apiResponse.json();
-    const aiText = json?.choices?.[0]?.message?.content || "";
+    const data = await completion.json();
 
-    // Ensure we return proper JSON
-    return new Response(
-      JSON.stringify({ html: aiText }),
-      {
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*"
-        }
+    const reply = data.choices?.[0]?.message?.content || "⚠️ No valid feedback returned.";
+
+    return new Response(JSON.stringify({ result: reply }), {
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*"
       }
-    );
+    });
+
   } catch (error) {
-    console.error("Validation Error:", error);
-    return new Response(
-      JSON.stringify({ html: "<p>❌ AI error. Try again later.</p>" }),
-      {
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*"
-        }
+    console.error("Error during AI evaluation:", error);
+    return new Response(JSON.stringify({ result: "⚠️ AI returned no message." }), {
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*"
       }
-    );
+    });
   }
 }
