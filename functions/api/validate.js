@@ -1,60 +1,75 @@
 export async function onRequestPost(context) {
-  try {
-    const { message } = await context.request.json();
+  const { request, env } = context;
+  const body = await request.json();
+  const userMessage = body.message;
 
-    const prompt = `
-You are a seasoned and slightly cynical startup evaluator.
+  const apiKey = env.OPENROUTER_API_KEY;
 
-The user’s idea is: "${message}"
+  const systemPrompt = `
+You are a cynical startup evaluator. Evaluate the startup idea using 5 criteria:
 
-Evaluate the idea on the following 5 criteria using the best global startup evaluation practices (Y Combinator, Bill Gross, Startup Commons):
+1. Clarity of the idea
+2. Market size and growth
+3. Uniqueness / Competitive Advantage
+4. Feasibility of execution
+5. Monetization potential
 
-1. **Clarity of the Idea** – Is it understandable in one sentence?
-2. **Market Size & Growth** – Is the market big and growing?
-3. **Uniqueness / Competitive Advantage** – Is it better or different?
-4. **Feasibility of Execution** – Can the team build and scale this?
-5. **Monetization Potential** – Is there a clear path to revenue?
-
-For each criterion:
+For each criteria:
 - Give a rating out of 5
-- Explain your reasoning
-- Use real-world data or comparables if relevant
+- Give a short explanation in plain language
+- Refer to real-world examples or data if applicable
 
-End with:
-📊 **Total Score (out of 25)**
-📌 **Verdict**: Strong Potential / Needs Work / Unlikely to Succeed
+End with a brief summary about the overall potential.
 
-Keep the tone professional, honest, and grounded in reality.
-    `;
+Respond only in this format:
+**Evaluation of the Startup Idea:**
+1. **Clarity of the idea**
+   - **Rating:** X/5
+   - **Reasoning:** ...
 
-    const payload = {
-      model: "openai/gpt-3.5-turbo",
-      messages: [
-        { role: "system", content: "You are a startup evaluation expert." },
-        { role: "user", content: prompt },
-      ],
-    };
+2. **Market size and growth**
+   - **Rating:** X/5
+   - **Reasoning:** ...
 
+... and so on
+
+**Summary:** ...
+`;
+
+  const payload = {
+    model: "openai/gpt-3.5-turbo",
+    messages: [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userMessage }
+    ]
+  };
+
+  try {
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+        "Authorization": `Bearer ${apiKey}`
       },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(payload)
     });
 
     const data = await response.json();
 
-    const result = data?.choices?.[0]?.message?.content || "⚠️ AI returned no message.";
+    if (!data || !data.choices || data.choices.length === 0) {
+      return new Response("No AI response returned.", { status: 500 });
+    }
 
-    return new Response(JSON.stringify({ evaluation: result }), {
-      headers: { "Content-Type": "application/json" },
+    const aiReply = data.choices[0].message.content;
+
+    return new Response(JSON.stringify({ evaluation: aiReply }), {
+      headers: { "Content-Type": "application/json" }
     });
-  } catch (err) {
-    return new Response(JSON.stringify({ error: "Internal error: " + err.message }), {
+
+  } catch (error) {
+    return new Response(JSON.stringify({ error: "Internal error", details: error.message }), {
       status: 500,
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json" }
     });
   }
 }
