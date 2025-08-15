@@ -1,46 +1,65 @@
 export async function onRequestPost(context) {
-  const body = await context.request.json();
-  const message = body.message;
+  try {
+    const { message } = await context.request.json();
 
-  if (!message) {
-    return new Response(JSON.stringify({ feedback: "No startup idea provided." }), {
-      headers: { "Content-Type": "application/json" },
-      status: 400,
+    if (!message) {
+      return new Response(JSON.stringify({ feedback: 'No input provided.' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    const apiKey = context.env.OPENROUTER_API_KEY;
+
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'openrouter/gpt-4-turbo',
+        messages: [
+          {
+            role: 'system',
+            content: `You are a startup validation expert for a government incubation program. The user will give you a startup idea. Your job is to critically evaluate it across 5 categories:
+
+1. Clarity of idea
+2. Market size and need
+3. Uniqueness / Innovation
+4. Feasibility in emerging markets like Pakistan
+5. Monetization potential
+
+Your response should be in this format:
+"✅ Clarity: ...
+📊 Market: ...
+💡 Uniqueness: ...
+⚙️ Feasibility: ...
+💰 Monetization: ...
+
+🌟 Overall verdict: [Strongly Recommend / Recommend with Revisions / Not Recommended]"
+
+Do not add anything else. Be realistic, concise, and helpful.`,
+          },
+          {
+            role: 'user',
+            content: message,
+          },
+        ],
+      }),
     });
+
+    const result = await response.json();
+
+    const feedback = result.choices?.[0]?.message?.content;
+
+    return new Response(JSON.stringify({ feedback: feedback || 'No feedback returned.' }), {
+      headers: { 'Content-Type': 'application/json' },
+    });
+  } catch (error) {
+    return new Response(
+      JSON.stringify({ error: 'AI request failed.', details: error.message }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
+    );
   }
-
-  const prompt = `
-You are a startup evaluator bot. Rate this idea across 5 categories on a 20-point scale each:
-1) Problem clarity
-2) Market size
-3) Uniqueness
-4) Feasibility
-5) Revenue potential
-
-Then give a total score out of 100 and brief feedback.
-
-Startup idea: ${message}
-`;
-
-  const apiRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Authorization": "Bearer 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",
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      model: "openai/gpt-3.5-turbo",
-      messages: [
-        { role: "system", content: "You are a startup evaluator AI assistant." },
-        { role: "user", content: prompt }
-      ]
-    })
-  });
-
-  const result = await apiRes.json();
-  const feedback = result?.choices?.[0]?.message?.content;
-
-  return new Response(JSON.stringify({ feedback }), {
-    headers: { "Content-Type": "application/json" }
-  });
 }
