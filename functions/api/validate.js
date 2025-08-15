@@ -1,61 +1,77 @@
-// functions/api/validate.js
-
 export async function onRequestPost(context) {
   try {
     const { message } = await context.request.json();
     const apiKey = context.env.OPENROUTER_API_KEY;
 
     const prompt = `
-You are a brutally honest startup idea evaluator using global best practices (Y Combinator checklist, VC scoring, OECD innovation model). Evaluate the idea below using these five criteria, and give:
+You are a brutally honest but helpful startup evaluator. Given a startup idea, evaluate it across the following 5 international validation criteria:
 
-- A rating (1–5) for each
-- A one-line reason
-- Real-world context/data if possible
+1. Clarity (Is the idea clearly explained?)
+2. Market Size (Is there a large enough market opportunity?)
+3. Uniqueness (Is this idea novel or differentiated?)
+4. Feasibility (Can this realistically be built, scaled, and sustained?)
+5. Monetization (Are there clear ways to make money?)
 
-Criteria:
-1. ✅ Clarity – Is the idea clear and understandable?
-2. 📊 Market Size – Is it targeting a large or growing market?
-3. 💡 Uniqueness – Is it solving a truly unique or underserved problem?
-4. 🔧 Feasibility – Can it realistically be built and scaled?
-5. 💰 Monetization – Is there a clear path to sustainable revenue?
+For each criterion:
+- Give a score out of 10
+- Explain your reasoning in plain language
+- Include real data or a relevant source if possible
 
-📌 Overall Summary: Should this idea be pursued? Be blunt and clear.
+Use this format exactly:
 
-Startup Idea:
-${message}
-`;
+📌 AI Feedback:
 
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+1. ✅ Clarity – [score]/10 – [reasoning] (e.g., “The idea is well-articulated and easy to understand.”)
+
+2. 📊 Market Size – [score]/10 – [reasoning] with real-world data (e.g., “Freelancer market in Pakistan exceeds X million”)
+
+3. 💡 Uniqueness – [score]/10 – [reasoning] (e.g., “There are many clones, but this twist is original.”)
+
+4. 🔧 Feasibility – [score]/10 – [reasoning] based on tech or team needs
+
+5. 💰 Monetization – [score]/10 – [reasoning] and potential models
+
+Then conclude with:
+
+📌 Overall Verdict:
+[Brief summary]
+    `;
+
+    const fullPrompt = `${prompt}\n\nStartup Idea: ${message}`;
+
+    const aiRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${apiKey}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "openai/gpt-3.5-turbo",
-        messages: [{ role: "user", content: prompt }]
+        model: "openrouter/gpt-3.5-turbo",
+        messages: [
+          {
+            role: "user",
+            content: fullPrompt
+          }
+        ]
       })
     });
 
-    const raw = await response.text();
+    const aiData = await aiRes.json();
 
-    console.log("🧾 RAW API RESPONSE:", raw); // debug log
+    const feedback =
+      aiData?.choices?.[0]?.message?.content?.trim() ||
+      "⚠️ AI returned no message.";
 
-    const data = JSON.parse(raw);
-
-    const aiMessage = data.choices?.[0]?.message?.content || "⚠️ AI returned no message.";
-    return new Response(JSON.stringify({ feedback: aiMessage }), {
-      headers: { "Content-Type": "application/json" }
-    });
-
+    return new Response(
+      JSON.stringify({ feedback, raw: aiData }),
+      {
+        headers: { "Content-Type": "application/json" }
+      }
+    );
   } catch (err) {
-    console.error("❌ INTERNAL ERROR:", err);
-    return new Response(JSON.stringify({
-      feedback: "📌 Overall Summary:\nAn internal error occurred.",
-      error: err.message
-    }), {
-      headers: { "Content-Type": "application/json" },
-      status: 500
-    });
+    return new Response(
+      JSON.stringify({ error: "Internal error occurred", details: err.message }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
+    );
   }
 }
