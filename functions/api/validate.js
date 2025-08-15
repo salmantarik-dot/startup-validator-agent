@@ -3,7 +3,7 @@ export async function onRequestPost(context) {
   const body = await request.json();
   const userMessage = body.message;
 
-  const apiKey = env.OPENROUTER_API_KEY;
+  const apiKey = env.OPENROUTER_API_KEY; // ✅ Using context.env correctly
 
   const systemPrompt = `
 You are a cynical startup evaluator. Evaluate the startup idea using 5 criteria:
@@ -16,22 +16,20 @@ You are a cynical startup evaluator. Evaluate the startup idea using 5 criteria:
 
 For each criteria:
 - Give a rating out of 5
-- Give a short explanation in plain language
-- Refer to real-world examples or data if applicable
-
-End with a brief summary about the overall potential.
+- Explain in plain language
+- Refer to real-world data if possible
 
 Respond only in this format:
 **Evaluation of the Startup Idea:**
-1. **Clarity of the idea**
+1. **Clarity**
    - **Rating:** X/5
    - **Reasoning:** ...
 
-2. **Market size and growth**
+2. **Market size**
    - **Rating:** X/5
    - **Reasoning:** ...
 
-... and so on
+...
 
 **Summary:** ...
 `;
@@ -57,7 +55,7 @@ Respond only in this format:
     const data = await response.json();
 
     if (!data || !data.choices || data.choices.length === 0) {
-      return new Response("No AI response returned.", { status: 500 });
+      return new Response("⚠️ AI returned no message", { status: 500 });
     }
 
     const aiReply = data.choices[0].message.content;
@@ -66,8 +64,11 @@ Respond only in this format:
       headers: { "Content-Type": "application/json" }
     });
 
-  } catch (error) {
-    return new Response(JSON.stringify({ error: "Internal error", details: error.message }), {
+  } catch (err) {
+    return new Response(JSON.stringify({
+      error: "Internal error",
+      details: err.message
+    }), {
       status: 500,
       headers: { "Content-Type": "application/json" }
     });
