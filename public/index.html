@@ -7,189 +7,144 @@
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      max-width: 750px;
-      margin: 40px auto;
-      background: linear-gradient(135deg, #fef6f9, #f0faff);
-      padding: 30px;
-      border-radius: 20px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+      background: #f0fdf4;
+      color: #222;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem;
     }
-
     h1 {
+      color: #00755e;
+      font-size: 2rem;
       text-align: center;
-      color: #2b2e4a;
-      font-size: 28px;
-      margin-bottom: 10px;
+      margin-bottom: 1rem;
     }
-
-    .subtitle {
-      text-align: center;
-      color: #7e7f9a;
-      font-size: 16px;
-      margin-bottom: 30px;
+    .field {
+      margin-bottom: 1rem;
     }
-
     label {
       font-weight: 600;
       display: block;
-      margin-top: 20px;
-      margin-bottom: 8px;
-      color: #3a3d56;
+      margin-bottom: 4px;
     }
-
     textarea {
       width: 100%;
-      padding: 12px 14px;
-      font-size: 14px;
-      border-radius: 12px;
+      height: 80px;
+      font-size: 1rem;
+      padding: 0.5rem;
       border: 1px solid #ccc;
-      background-color: #ffffff;
-      resize: vertical;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.04);
+      border-radius: 6px;
     }
-
     button {
-      margin-top: 30px;
-      padding: 14px 24px;
-      background-color: #1fab89;
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      background: #00755e;
       color: white;
-      font-size: 16px;
       border: none;
-      border-radius: 12px;
+      border-radius: 6px;
       cursor: pointer;
-      transition: background 0.3s ease;
-      display: block;
-      width: 100%;
     }
-
     button:hover {
-      background-color: #138d75;
+      background: #005b47;
     }
-
-    .response {
-      white-space: pre-wrap;
-      margin-top: 40px;
-      background-color: #ffffff;
-      padding: 24px;
-      border-radius: 15px;
-      border: 1px solid #ddd;
-      font-size: 14px;
-      color: #333;
-    }
-
-    .score-badge {
-      font-weight: bold;
-      padding: 10px 14px;
-      display: inline-block;
+    #result {
+      margin-top: 2rem;
+      padding: 1rem;
+      background: #ffffff;
       border-radius: 8px;
-      margin-bottom: 10px;
-      font-size: 16px;
+      border: 1px solid #ddd;
     }
-
-    .badge-great {
-      background-color: #d1f2eb;
-      color: #0e6251;
-    }
-
-    .badge-good {
-      background-color: #fcf3cf;
-      color: #7d6608;
-    }
-
-    .badge-poor {
-      background-color: #f5b7b1;
-      color: #78281f;
-    }
-
     footer {
-      margin-top: 50px;
       text-align: center;
-      font-size: 14px;
-      color: #999;
+      margin-top: 3rem;
+      font-size: 0.9rem;
+      color: #666;
     }
-
-    footer strong {
-      color: #4a4a4a;
-    }
-
   </style>
 </head>
+
 <body>
-  <h1>🚀 Startup Validator Agent</h1>
-  <div class="subtitle">by <strong>PITB Incubation Wing</strong></div>
+  <h1>🧠 Startup Validator Agent</h1>
+  <p style="text-align: center; font-size: 1.1rem;">Built by <strong>PITB Incubation Wing</strong></p>
 
-  <form id="startup-form">
-    <label>1. What is your startup idea? (Clarity)</label>
-    <textarea id="clarity" rows="2" placeholder="Clearly describe the idea"></textarea>
-
-    <label>2. Who is your target market? How big is the opportunity? (Market size)</label>
-    <textarea id="market" rows="2" placeholder="e.g. 1 million+ potential users in Pakistan"></textarea>
-
-    <label>3. What makes your solution unique? (Uniqueness / Competitive advantage)</label>
-    <textarea id="uniqueness" rows="2" placeholder="e.g. First to offer X, patented approach, etc."></textarea>
-
-    <label>4. How do you plan to build and launch it? (Feasibility of execution)</label>
-    <textarea id="feasibility" rows="2" placeholder="e.g. My co-founder is a civil engineer, we have access to local manufacturers"></textarea>
-
-    <label>5. How will you make money? (Monetization potential)</label>
-    <textarea id="monetization" rows="2" placeholder="e.g. Subscription model, government partnerships, etc."></textarea>
-
-    <button type="submit">✅ Validate My Idea</button>
+  <form id="idea-form">
+    <div class="field">
+      <label for="clarity">1. Describe your idea clearly</label>
+      <textarea id="clarity" placeholder="e.g. A marketplace connecting Pakistani freelancers to international clients with escrow protection."></textarea>
+    </div>
+    <div class="field">
+      <label for="market">2. Describe the market size / opportunity</label>
+      <textarea id="market" placeholder="e.g. Freelance market worth $1.5B/year in Pakistan, targeting 2M freelancers."></textarea>
+    </div>
+    <div class="field">
+      <label for="uniqueness">3. What makes it unique?</label>
+      <textarea id="uniqueness" placeholder="e.g. Escrow feature localized to Pakistani banks; mentorship access."></textarea>
+    </div>
+    <div class="field">
+      <label for="feasibility">4. Can you realistically build it?</label>
+      <textarea id="feasibility" placeholder="e.g. I have a dev team, payment APIs, and access to freelancer communities."></textarea>
+    </div>
+    <div class="field">
+      <label for="monetization">5. How will it make money?</label>
+      <textarea id="monetization" placeholder="e.g. 5% transaction fee + premium subscriptions for recruiters."></textarea>
+    </div>
+    <button type="submit">🚀 Evaluate Idea</button>
   </form>
 
-  <div id="response" class="response"></div>
+  <div id="result"></div>
 
   <footer>
-    🧠 <strong>Startup Validator Agent</strong> by <strong>PITB Incubation Wing</strong>
+    Startup Validator Agent by PITB Incubation Wing
   </footer>
 
   <script>
-    const form = document.getElementById('startup-form');
-    const responseDiv = document.getElementById('response');
-
-    form.addEventListener('submit', async (e) => {
+    document.getElementById('idea-form').addEventListener('submit', async (e) => {
       e.preventDefault();
 
       const message = `
-Startup Idea (Clarity): ${document.getElementById('clarity').value}
-Market Size: ${document.getElementById('market').value}
-Uniqueness: ${document.getElementById('uniqueness').value}
-Feasibility: ${document.getElementById('feasibility').value}
-Monetization: ${document.getElementById('monetization').value}
-`;
+        Idea Clarity: ${document.getElementById('clarity').value}
+        Market Size: ${document.getElementById('market').value}
+        Uniqueness: ${document.getElementById('uniqueness').value}
+        Feasibility: ${document.getElementById('feasibility').value}
+        Monetization: ${document.getElementById('monetization').value}
+      `;
 
-      responseDiv.innerHTML = '⏳ Validating your startup...';
+      const response = await fetch('/api/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message })
+      });
 
-      try {
-        const res = await fetch('/api/validate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message })
-        });
-
-        const data = await res.json();
-
-        if (data.evaluation) {
-          const scoreMatch = data.evaluation.match(/Overall Score:\s*(\d+)/i);
-          let badgeHTML = '';
-          if (scoreMatch) {
-            const score = parseInt(scoreMatch[1]);
-            let badgeClass = 'badge-poor';
-            if (score >= 17) badgeClass = 'badge-great';
-            else if (score >= 13) badgeClass = 'badge-good';
-
-            badgeHTML = `<div class="score-badge ${badgeClass}">🌟 Overall Score: ${score}/25</div>`;
-          }
-
-          responseDiv.innerHTML = badgeHTML + `<div>${data.evaluation}</div>`;
-        } else {
-          responseDiv.innerText = '⚠️ AI returned no message.';
-        }
-      } catch (error) {
-        console.error(error);
-        responseDiv.innerText = '❌ Error occurred while fetching response.';
-      }
+      const result = await response.json();
+      displayResults(result);
     });
+
+    function displayResults(feedback) {
+      const resultBox = document.getElementById('result');
+      resultBox.innerHTML = ''; // Clear previous content
+
+      if (!feedback || !feedback.criteria || !feedback.summary) {
+        resultBox.innerHTML = '<p style="color: red;">⚠️ No valid feedback returned.</p>';
+        return;
+      }
+
+      let html = `
+        <div style="font-family: 'Segoe UI', sans-serif; line-height: 1.6;">
+          <h2 style="color: #00755e;">📋 Startup Evaluation Summary</h2>
+          ${feedback.criteria.map(item => `
+            <div style="margin-bottom: 20px; padding: 15px; border: 1px solid #eee; border-radius: 8px; background-color: #f9f9f9;">
+              <h3 style="margin: 0 0 5px;">${item.title} — <span style="color: #ff8c00; font-weight: bold;">${item.rating}/5</span></h3>
+              <p style="margin: 0;">${item.reasoning}</p>
+            </div>
+          `).join('')}
+          <hr style="margin: 30px 0;" />
+          <h3 style="color: #00755e;">🔍 Overall Verdict</h3>
+          <p>${feedback.summary}</p>
+        </div>
+      `;
+
+      resultBox.innerHTML = html;
+    }
   </script>
 </body>
 </html>
