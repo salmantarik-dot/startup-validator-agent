@@ -1,51 +1,63 @@
 export async function onRequestPost(context) {
-  try {
-    const { message } = await context.request.json();
-    const OPENROUTER_API_KEY = context.env.OPENROUTER_API_KEY;
+  const { request, env } = context;
 
-    const prompt = `
-You are a startup evaluator. Review the startup idea below based on 5 key factors:
-1. Clarity – Is the idea clearly described?
-2. Market Size – Does it target a meaningful market?
-3. Uniqueness – What’s new or different?
-4. Feasibility – Can this actually be built?
-5. Monetization – Is there a viable way to make money?
+  const { message } = await request.json();
 
-Startup Idea:
-${message}
+  const prompt = `
+You are a brutally honest but fair startup evaluator in an accelerator panel.
+
+Given the following startup idea: "${message}", evaluate it across these 5 criteria:
+
+1. Clarity (is the idea clearly defined?)
+2. Market Size (is it targeting a big and real market?)
+3. Uniqueness (what sets it apart from existing solutions?)
+4. Feasibility (can it be realistically built and scaled?)
+5. Monetization (are there viable ways to make money?)
+
+For each, rate it out of 10 and give 1–2 lines of reason. Be constructive but also skeptical. Use real data where possible (you may simulate if needed, but sound grounded). Conclude with a 2–3 line verdict summarizing the potential, red flags, and one key recommendation.
 
 Format the output like this:
 
-1. ✅ Clarity – your response  
-2. 📊 Market Size – your response  
-3. 💡 Uniqueness – your response  
-4. 🔧 Feasibility – your response  
-5. 💰 Monetization – your response  
+👓 Idea: [idea]
 
-End with a 2–3 line overall verdict.`;
+🔍 Evaluation:
 
-    const aiResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+1. Clarity – ?/10  
+   Reason...
+
+2. Market Size – ?/10  
+   Reason...
+
+...
+
+🧠 Verdict:
+Your final thoughts and recommendation.
+`;
+
+  try {
+    const completion = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${env.OPENROUTER_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "openai/gpt-3.5-turbo",
+        model: "openai/gpt-3.5-turbo", // or gpt-4 if you want and have access
         messages: [{ role: "user", content: prompt }],
-      })
+      }),
     });
 
-    const raw = await aiResponse.json();
-    const feedback = raw.choices?.[0]?.message?.content || "⚠️ AI returned no message.";
+    const { choices } = await completion.json();
+    const feedback = choices?.[0]?.message?.content || "No feedback returned.";
 
     return new Response(JSON.stringify({ feedback }), {
-      headers: { "Content-Type": "application/json" }
+      headers: { "Content-Type": "application/json" },
     });
+
   } catch (err) {
-    console.error("Error:", err);
-    return new Response(JSON.stringify({ feedback: "⚠️ Something went wrong." }), {
-      headers: { "Content-Type": "application/json" }
+    return new Response(JSON.stringify({ feedback: null, error: err.message }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
     });
   }
 }
