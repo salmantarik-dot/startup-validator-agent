@@ -39,11 +39,11 @@ export async function onRequestPost(context) {
       },
     });
   } catch (err) {
-    return new Response(`Error: ${err.message}`, {
-      status: 500,
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-      },
-    });
+    return new Response(JSON.stringify({
+  draft: aiResponseText.trim() // send wrapped in JSON
+}), {
+  headers: {
+    "Content-Type": "application/json",
+    "Access-Control-Allow-Origin": "*"
   }
-}
+});
