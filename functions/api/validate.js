@@ -1,68 +1,51 @@
 export async function onRequestPost(context) {
   try {
     const { message } = await context.request.json();
+    const OPENROUTER_API_KEY = context.env.OPENROUTER_API_KEY;
 
     const prompt = `
-You are a startup evaluator AI agent. Based on the startup idea below, evaluate the following 5 dimensions and return your feedback in a structured way:
-
-1. ✅ Clarity – Is the idea clearly stated?
-2. 📊 Market Size – Is the target market significant?
-3. 💡 Uniqueness – Is this idea differentiated from others?
-4. 🔧 Feasibility – Is it realistic to build this?
-5. 💰 Monetization – Are there valid ways to earn money?
+You are a startup evaluator. Review the startup idea below based on 5 key factors:
+1. Clarity – Is the idea clearly described?
+2. Market Size – Does it target a meaningful market?
+3. Uniqueness – What’s new or different?
+4. Feasibility – Can this actually be built?
+5. Monetization – Is there a viable way to make money?
 
 Startup Idea:
-"${message}"
+${message}
 
-Respond only in the format below:
+Format the output like this:
 
-AI Feedback:
-1. ✅ Clarity – ...
-2. 📊 Market Size – ...
-3. 💡 Uniqueness – ...
-4. 🔧 Feasibility – ...
-5. 💰 Monetization – ...
+1. ✅ Clarity – your response  
+2. 📊 Market Size – your response  
+3. 💡 Uniqueness – your response  
+4. 🔧 Feasibility – your response  
+5. 💰 Monetization – your response  
 
-Then provide a 1-paragraph summary giving overall advice or encouragement.
-`;
+End with a 2–3 line overall verdict.`;
 
-    const apiKey = context.env.OPENROUTER_API_KEY;
-
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    const aiResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${apiKey}`,
+        "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
+        "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "openrouter/gpt-3.5-turbo",
-        messages: [
-          { role: "system", content: "You are a helpful and structured startup idea evaluator." },
-          { role: "user", content: prompt }
-        ]
+        model: "openai/gpt-3.5-turbo",
+        messages: [{ role: "user", content: prompt }],
       })
     });
 
-    const data = await response.json();
+    const raw = await aiResponse.json();
+    const feedback = raw.choices?.[0]?.message?.content || "⚠️ AI returned no message.";
 
-    const aiMessage = data.choices?.[0]?.message?.content;
-
-    if (!aiMessage) {
-      return new Response(JSON.stringify({ feedback: "⚠️ AI returned no message." }), {
-        headers: { "Content-Type": "application/json" },
-        status: 200,
-      });
-    }
-
-    return new Response(JSON.stringify({ feedback: aiMessage }), {
-      headers: { "Content-Type": "application/json" },
-      status: 200,
+    return new Response(JSON.stringify({ feedback }), {
+      headers: { "Content-Type": "application/json" }
     });
-
   } catch (err) {
-    return new Response(JSON.stringify({ feedback: "❌ Error processing request", error: err.message }), {
-      headers: { "Content-Type": "application/json" },
-      status: 500,
+    console.error("Error:", err);
+    return new Response(JSON.stringify({ feedback: "⚠️ Something went wrong." }), {
+      headers: { "Content-Type": "application/json" }
     });
   }
 }
