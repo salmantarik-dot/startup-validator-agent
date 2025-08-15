@@ -1,35 +1,76 @@
-<script>
-  const form = document.getElementById("validator-form");
-  const output = document.getElementById("output");
-
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const message = document.getElementById("idea").value.trim();
-
-    if (!message) {
-      output.innerText = "❌ Please enter your startup idea.";
-      return;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Startup Validator Agent</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
     }
+    textarea {
+      width: 100%;
+      padding: 10px;
+      font-size: 1em;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 1em;
+    }
+    pre {
+      background-color: #f4f4f4;
+      padding: 15px;
+      border-left: 5px solid green;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <h1>🚀 Startup Validator Agent</h1>
+  <form id="validator-form">
+    <label for="idea">💡 Describe your startup idea:</label><br/><br/>
+    <textarea id="idea" rows="6" placeholder="e.g. A platform to connect Pakistani freelancers to global clients with escrow protection"></textarea><br/><br/>
+    <button type="submit">Evaluate Idea</button>
+  </form>
+  <div id="output" style="margin-top: 30px;"></div>
 
-    output.innerText = "⏳ Evaluating your startup idea...";
+  <script>
+    const form = document.getElementById("validator-form");
+    const output = document.getElementById("output");
 
-    try {
-      const response = await fetch("/api/validate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message }),
-      });
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const message = document.getElementById("idea").value.trim();
 
-      const data = await response.json();
-
-      if (data.evaluation) {
-        output.innerHTML = `<pre>${data.evaluation}</pre>`;
-      } else {
-        output.innerText = "⚠️ AI returned no message.";
+      if (!message) {
+        output.innerText = "❌ Please enter your startup idea.";
+        return;
       }
-    } catch (err) {
-      console.error("Fetch error:", err);
-      output.innerText = "🚨 Error connecting to the AI.";
-    }
-  });
-</script>
+
+      output.innerText = "⏳ Evaluating your startup idea...";
+
+      try {
+        const response = await fetch("/api/validate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message }),
+        });
+
+        const data = await response.json();
+
+        if (data.evaluation) {
+          output.innerHTML = `<pre>${data.evaluation}</pre>`;
+        } else {
+          output.innerText = "⚠️ AI returned no message.";
+        }
+      } catch (err) {
+        console.error("Fetch error:", err);
+        output.innerText = "🚨 Error connecting to the AI.";
+      }
+    });
+  </script>
+</body>
+</html>
