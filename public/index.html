@@ -65,7 +65,13 @@
         });
 
         const data = await response.json();
-        resultContainer.innerHTML = `<pre>${data.feedback}</pre>`;
+
+        resultContainer.innerHTML = `
+          <h3>AI Feedback:</h3>
+          <pre>${data.feedback || "⚠️ No feedback returned."}</pre>
+          <h4 style="margin-top:1em;">Raw Response:</h4>
+          <pre>${JSON.stringify(data.rawResponse || {}, null, 2)}</pre>
+        `;
       } catch (err) {
         resultContainer.innerHTML = "❌ Could not connect to AI.";
         console.error(err);
